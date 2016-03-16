@@ -1,16 +1,17 @@
 package student_player;
 
+import java.util.ArrayList;
+
 import hus.HusBoardState;
 import hus.HusPlayer;
 import hus.HusMove;
-
-import java.util.ArrayList;
-
+import student_player.mytools.MinMaxNode;
 import student_player.mytools.MyTools;
 
 /** A Hus player submitted by a student. */
 public class StudentPlayer extends HusPlayer {
 
+	
     /** You must modify this constructor to return your student number.
      * This is important, because this is what the code that runs the
      * competition uses to associate you with your agent.
@@ -30,16 +31,11 @@ public class StudentPlayer extends HusPlayer {
         int[] my_pits = pits[player_id];
         int[] op_pits = pits[opponent_id];
 
-        // Use code stored in ``mytools`` package.
-        MyTools.getSomething();
-
-        // Get the legal moves for the current board state.
-        ArrayList<HusMove> moves = board_state.getLegalMoves();
-        HusMove move = moves.get(0);
-
-        // We can see the effects of a move like this...
-        HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
-        cloned_board_state.move(move);
+        MinMaxNode<HusMove> AB_tree = MyTools.createMinMaxTree(board_state, my_pits, op_pits);
+        HusMove move = MyTools.getMaxMove(AB_tree);
+        
+//        ArrayList<HusMove> moves = board_state.getLegalMoves();
+//        HusMove move = moves.get(0);
 
         // But since this is a placeholder algorithm, we won't act on that information.
         return move;
