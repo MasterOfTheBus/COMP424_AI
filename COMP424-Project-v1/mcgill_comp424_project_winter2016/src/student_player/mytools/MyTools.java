@@ -8,7 +8,7 @@ import hus.HusMove;
 
 public class MyTools {
 
-	final static int MAX_DEPTH = 3;
+	final static int MAX_DEPTH = 1;
 	
 	// create a depth limited tree from given board state
 	public static MinMaxNode<HusMove> createMinMaxTree(HusBoardState board_state, int[] my_pits, int[] op_pits) {
@@ -17,18 +17,25 @@ public class MyTools {
 		// Get the legal moves for the current board state.
         ArrayList<HusMove> moves = board_state.getLegalMoves();
         Stack<MinMaxNode<HusMove>> move_stack = new Stack<MinMaxNode<HusMove>>();
-        
+                
         // add to stack
 		for (int i = 0; i < moves.size(); i++) {
 			MinMaxNode<HusMove> pushNode = root.addChild(moves.get(i));
+//			int myseeds = getPlayerTotalSeeds(my_pits);
+//			int opseeds = getPlayerTotalSeeds(op_pits);
+//			pushNode.score = myseeds - opseeds;
+			
 			move_stack.push(pushNode);
+			
 		}
 		
 		while (!move_stack.isEmpty()) {
 			MinMaxNode<HusMove> nextMove = move_stack.pop();
 			
 			// depth limited
-			if (nextMove.depth <= MAX_DEPTH) {
+			System.out.println(move_stack.size());
+			System.out.println(nextMove.depth);
+			if (nextMove.depth < MAX_DEPTH) {
 				// get children moves and push to stack as long as we are within the tree's depth
 				// We can see the effects of a move like this...
 				HusBoardState cloned_board_state = (HusBoardState) board_state.clone();

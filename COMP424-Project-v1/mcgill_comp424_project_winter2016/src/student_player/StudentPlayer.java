@@ -10,7 +10,7 @@ import student_player.mytools.MyTools;
 
 /** A Hus player submitted by a student. */
 public class StudentPlayer extends HusPlayer {
-
+	boolean firstMove = true;
 	
     /** You must modify this constructor to return your student number.
      * This is important, because this is what the code that runs the
@@ -24,20 +24,28 @@ public class StudentPlayer extends HusPlayer {
      * for another example agent. */
     public HusMove chooseMove(HusBoardState board_state)
     {
-        // Get the contents of the pits so we can use it to make decisions.
-        int[][] pits = board_state.getPits();
+    	ArrayList<HusMove> moves = board_state.getLegalMoves();
+    	HusMove move;
+    	if (firstMove) {
+    		// for now the first move will be random so that we can avoid making a tree with one level of the same score
+    		move = moves.get((int)(Math.random() * moves.size()));
+    		firstMove = false;
+    		
+    		// TODO: should the first move save a tree or some structure?
+    	} else {
+    	
+    		// Get the contents of the pits so we can use it to make decisions.
+    		int[][] pits = board_state.getPits();
 
-        // Use ``player_id`` and ``opponent_id`` to get my pits and opponent pits.
-        int[] my_pits = pits[player_id];
-        int[] op_pits = pits[opponent_id];
+    		// Use ``player_id`` and ``opponent_id`` to get my pits and opponent pits.
+    		int[] my_pits = pits[player_id];
+    		int[] op_pits = pits[opponent_id];
 
-        MinMaxNode<HusMove> AB_tree = MyTools.createMinMaxTree(board_state, my_pits, op_pits);
-        HusMove move = MyTools.getMaxMove(AB_tree);
-        
-//        ArrayList<HusMove> moves = board_state.getLegalMoves();
-//        HusMove move = moves.get(0);
+    		MinMaxNode<HusMove> AB_tree = MyTools.createMinMaxTree(board_state, my_pits, op_pits);
+    		System.out.println("created tree");
+    		move = MyTools.getMaxMove(AB_tree);
+    	}
 
-        // But since this is a placeholder algorithm, we won't act on that information.
         return move;
     }
 }

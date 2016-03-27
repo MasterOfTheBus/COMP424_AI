@@ -26,20 +26,24 @@ public class MinMaxNode<T> {
 	
 	public MinMaxNode<T> addChild(T data) {
 		MinMaxNode<T> child = new MinMaxNode<T>(data, this.depth+1, !(this.max));
-		child.setParent(this);
+		child.parent = this;
 		this.children.add(child);
 		return child;
 	}
 	
 	public void addChild(MinMaxNode<T> child) {
-		child.setParent(this);
+		child.parent = this;
 		this.children.add(child);
 	}
 
 	public void setParent(MinMaxNode<T> parent) {
-		parent.addChild(this);
+		parent.children.add(this);
 		this.parent = parent;
 		
+	}
+	
+	public void makeRoot() {
+		this.parent = null;
 	}
 	
 	public boolean isRoot() {
