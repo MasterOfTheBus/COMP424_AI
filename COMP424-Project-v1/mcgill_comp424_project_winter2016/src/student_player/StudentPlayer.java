@@ -24,26 +24,19 @@ public class StudentPlayer extends HusPlayer {
      * for another example agent. */
     public HusMove chooseMove(HusBoardState board_state)
     {
-    	ArrayList<HusMove> moves = board_state.getLegalMoves();
     	HusMove move;
     	if (firstMove) {
+        	ArrayList<HusMove> moves = board_state.getLegalMoves();
+
     		// for now the first move will be random so that we can avoid making a tree with one level of the same score
     		move = moves.get((int)(Math.random() * moves.size()));
     		firstMove = false;
     		
     		// TODO: should the first move save a tree or some structure?
     	} else {
-    	
-    		// Get the contents of the pits so we can use it to make decisions.
-    		int[][] pits = board_state.getPits();
 
-    		// Use ``player_id`` and ``opponent_id`` to get my pits and opponent pits.
-    		int[] my_pits = pits[player_id];
-    		int[] op_pits = pits[opponent_id];
-
-    		MinMaxNode<HusMove> AB_tree = MyTools.createMinMaxTree(board_state, my_pits, op_pits);
-    		System.out.println("created tree");
-    		move = MyTools.getMaxMove(AB_tree);
+    		MyTools.ABNode node = MyTools.getMove(board_state, player_id, opponent_id, 0, true);
+    		move = node.move;
     	}
 
         return move;

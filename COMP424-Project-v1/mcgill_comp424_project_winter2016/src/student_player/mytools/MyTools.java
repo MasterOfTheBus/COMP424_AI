@@ -9,80 +9,55 @@ import hus.HusMove;
 public class MyTools {
 
 	final static int MAX_DEPTH = 1;
+	int depth = 0;
+	static int alpha = Integer.MIN_VALUE;
+	static int beta = Integer.MAX_VALUE;
 	
-	// create a depth limited tree from given board state
-	public static MinMaxNode<HusMove> createMinMaxTree(HusBoardState board_state, int[] my_pits, int[] op_pits) {
-		MinMaxNode<HusMove> root = new MinMaxNode<HusMove>(null, 0, true);
-	
-		// Get the legal moves for the current board state.
-        ArrayList<HusMove> moves = board_state.getLegalMoves();
-        Stack<MinMaxNode<HusMove>> move_stack = new Stack<MinMaxNode<HusMove>>();
-                
-        // add to stack
-		for (int i = 0; i < moves.size(); i++) {
-			MinMaxNode<HusMove> pushNode = root.addChild(moves.get(i));
-//			int myseeds = getPlayerTotalSeeds(my_pits);
-//			int opseeds = getPlayerTotalSeeds(op_pits);
-//			pushNode.score = myseeds - opseeds;
-			
-			move_stack.push(pushNode);
-			
-		}
+	public static ABNode getMove(HusBoardState board_state, int player_id, int opponent_id, int depth, boolean max) {
+		int score = (max) ? alpha : beta;
+		HusMove move;
 		
-		while (!move_stack.isEmpty()) {
-			MinMaxNode<HusMove> nextMove = move_stack.pop();
-			
-			// depth limited
-			System.out.println(move_stack.size());
-			System.out.println(nextMove.depth);
-			if (nextMove.depth < MAX_DEPTH) {
-				// get children moves and push to stack as long as we are within the tree's depth
-				// We can see the effects of a move like this...
-				HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
-				cloned_board_state.move(nextMove.data);
-			
-				ArrayList<HusMove> nextMoves = cloned_board_state.getLegalMoves();
-				for (int j = 0; j < nextMoves.size(); j++) {
-					MinMaxNode<HusMove> pushNode = nextMove.addChild(nextMoves.get(j));
-					move_stack.push(pushNode);
+		ArrayList<HusMove> moves = board_state.getLegalMoves();
+
+		move = moves.get(0);
+		for (int i = 0; i < moves.size(); i++) {
+			HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
+			cloned_board_state.move(moves.get(i));
+
+			if (depth == MAX_DEPTH) {
+				int[][] pits = cloned_board_state.getPits();
+				int diff = getPlayerTotalSeeds(pits[player_id]) - getPlayerTotalSeeds(pits[opponent_id]);
+				if (max) {
+					if (diff > score) {
+						score = diff;
+						move = moves.get(i);
+					}
+				} else if (!max) {
+					if (diff < alpha) {
+						return (new ABNode(moves.get(i), Integer.MIN_VALUE)); // pruning for min nodes
+					}
+					if (diff < score) {
+						score = diff;
+						move = moves.get(i);
+					}
 				}
 			} else {
-				// update the path based on the score
-				int myseeds = getPlayerTotalSeeds(my_pits);
-				int opseeds = getPlayerTotalSeeds(op_pits);
-				nextMove.score = myseeds - opseeds;
-				
-				updateParentScores(nextMove);
+				ABNode node = getMove(cloned_board_state, player_id, opponent_id, depth + 1, !max);
+				if (max && node.score > score || !max && node.score < score) {
+					score = node.score;
+					move = moves.get(i);
+				}
+//				else if (!max && node.score < score) {
+//					score = node.score;
+//					move = node.move;
+//				}
 			}
 		}
 		
-		return root;
-	}
-	
-	private static void updateParentScores(MinMaxNode<HusMove> child) {
-		while (child != null) {
-			if (child.parent.isMax() && child.parent.score < child.score) {
-				child.parent.score = child.score;
-			} else if (child.parent.isMin() && child.parent.score > child.score) {
-				child.parent.score = child.score;
-			}
-			
-			child = child.parent;
-		}
-	}
-	
-	public static HusMove getMaxMove(MinMaxNode<HusMove> root) {
-		ArrayList<MinMaxNode<HusMove>> children = (ArrayList<MinMaxNode<HusMove>>) root.children;
-		double max_score = children.get(0).score;
-		MinMaxNode<HusMove> maxMove = children.get(0);
-		for (int i = 0; i < children.size(); i++) {
-			if (children.get(i).score > max_score) {
-				max_score = children.get(i).score;
-				maxMove = children.get(i);
-			}
-		}
+		ABNode ab = new ABNode(move, score);
 		
-		return maxMove.data;
+		return ab;
+		
 	}
 	
 	public static int getPlayerTotalSeeds(int[] player_pits) {
@@ -94,8 +69,14 @@ public class MyTools {
 		
 		return seeds;
 	}
-	
-    public static double getSomething(){
-        return Math.random();
+    
+    public static class ABNode {
+    	public HusMove move;
+    	public int score;
+    	
+    	public ABNode(HusMove move, int score) {
+    		this.move = move;
+    		this.score = score;
+    	}
     }
 }
