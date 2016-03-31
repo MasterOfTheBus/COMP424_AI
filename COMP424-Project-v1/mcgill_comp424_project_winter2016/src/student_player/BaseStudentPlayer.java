@@ -8,20 +8,17 @@ import hus.HusMove;
 import student_player.mytools.MinMaxNode;
 import student_player.mytools.MyTools;
 
-/** A Hus player submitted by a student. */
-public class StudentPlayer extends HusPlayer {
+/**
+ * 
+ * A Hus player that can beat the random player consistently.
+ * Use this player as a base to test any improvements to choosing a move
+ * 
+ * */
+public class BaseStudentPlayer extends HusPlayer {
 	boolean firstMove = true;
 	
-    /** You must modify this constructor to return your student number.
-     * This is important, because this is what the code that runs the
-     * competition uses to associate you with your agent.
-     * The constructor should do nothing else. */
-    public StudentPlayer() { super("260507001"); }
+    public BaseStudentPlayer() { super("260507001"); }
 
-    /** This is the primary method that you need to implement.
-     * The ``board_state`` object contains the current state of the game,
-     * which your agent can use to make decisions. See the class hus.RandomHusPlayer
-     * for another example agent. */
     public HusMove chooseMove(HusBoardState board_state)
     {
     	HusMove move;
@@ -35,7 +32,7 @@ public class StudentPlayer extends HusPlayer {
     		// TODO: should the first move save a tree or some structure?
     	} else {
 
-    		MyTools.ABNode node = MyTools.getMoveDepth(board_state, player_id, opponent_id, 0, true, 3);
+    		MyTools.ABNode node = MyTools.getMoveBasic(board_state, player_id, opponent_id);
     		move = node.move;
     	}
 

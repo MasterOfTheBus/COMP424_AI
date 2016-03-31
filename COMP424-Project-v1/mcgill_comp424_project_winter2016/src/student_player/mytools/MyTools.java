@@ -9,11 +9,14 @@ import hus.HusMove;
 public class MyTools {
 
 	final static int MAX_DEPTH = 1;
-	int depth = 0;
 	static int alpha = Integer.MIN_VALUE;
 	static int beta = Integer.MAX_VALUE;
 	
-	public static ABNode getMove(HusBoardState board_state, int player_id, int opponent_id, int depth, boolean max) {
+	public static ABNode getMoveBasic(HusBoardState board_state, int player_id, int opponent_id) {
+		return getMoveDepth(board_state, player_id, opponent_id, 0, true, 1);
+	}
+	
+	public static ABNode getMoveDepth(HusBoardState board_state, int player_id, int opponent_id, int depth, boolean max, int max_depth) {
 		int score = (max) ? alpha : beta;
 		HusMove move;
 		
@@ -24,7 +27,7 @@ public class MyTools {
 			HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
 			cloned_board_state.move(moves.get(i));
 
-			if (depth == MAX_DEPTH) {
+			if (depth == max_depth) {
 				int[][] pits = cloned_board_state.getPits();
 				int diff = getPlayerTotalSeeds(pits[player_id]) - getPlayerTotalSeeds(pits[opponent_id]);
 				if (max) {
@@ -42,7 +45,7 @@ public class MyTools {
 					}
 				}
 			} else {
-				ABNode node = getMove(cloned_board_state, player_id, opponent_id, depth + 1, !max);
+				ABNode node = getMoveDepth(cloned_board_state, player_id, opponent_id, depth + 1, !max, max_depth);
 				if (max && node.score > score || !max && node.score < score) {
 					score = node.score;
 					move = moves.get(i);
