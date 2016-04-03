@@ -34,9 +34,7 @@ public class StudentPlayer extends HusPlayer {
     		
     		// TODO: should the first move save a tree or some structure?
     	} else {
-
-    		MyTools.ABNode node = MyTools.getMoveDepth(board_state, player_id, opponent_id, 0, true, 3);
-    		move = node.move;
+    		move = MyTools.MonteCarloTreeSearch(board_state, player_id, opponent_id);
     	}
 
         return move;
