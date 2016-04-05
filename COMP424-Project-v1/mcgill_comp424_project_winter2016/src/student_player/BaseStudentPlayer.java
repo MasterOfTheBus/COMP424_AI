@@ -17,7 +17,7 @@ import student_player.mytools.MyTools;
 public class BaseStudentPlayer extends HusPlayer {
 	boolean firstMove = true;
 	
-    public BaseStudentPlayer() { super("260507001"); }
+    public BaseStudentPlayer() { super("Base Player"); }
 
     public HusMove chooseMove(HusBoardState board_state)
     {
@@ -28,11 +28,10 @@ public class BaseStudentPlayer extends HusPlayer {
     		// for now the first move will be random so that we can avoid making a tree with one level of the same score
     		move = moves.get((int)(Math.random() * moves.size()));
     		firstMove = false;
-    		
-    		// TODO: should the first move save a tree or some structure?
+
     	} else {
 
-    		MyTools.ABNode node = MyTools.getMoveBasic(board_state, player_id, opponent_id);
+    		MyTools.ABNode node = MyTools.MaxValues(board_state, Integer.MIN_VALUE, Integer.MAX_VALUE, 0, player_id, opponent_id);
     		move = node.move;
     	}
 

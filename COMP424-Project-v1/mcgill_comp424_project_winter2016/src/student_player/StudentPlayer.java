@@ -31,10 +31,11 @@ public class StudentPlayer extends HusPlayer {
     		// for now the first move will be random so that we can avoid making a tree with one level of the same score
     		move = moves.get((int)(Math.random() * moves.size()));
     		firstMove = false;
-    		
-    		// TODO: should the first move save a tree or some structure?
+
     	} else {
-    		move = MyTools.MonteCarloTreeSearch(board_state, player_id, opponent_id);
+//    		move = MyTools.MonteCarloTreeSearch(board_state, player_id, opponent_id);
+    		MyTools.ABNode node = MyTools.MaxValues(board_state, Integer.MIN_VALUE, Integer.MAX_VALUE, 0, player_id, opponent_id);
+    		move = node.move;
     	}
 
         return move;

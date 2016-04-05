@@ -9,62 +9,9 @@ import hus.HusMove;
 
 public class MyTools {
 
+	final static int MAX_AB_DEPTH = 6;
 	final static int MAX_ROLLOUT_DEPTH = 10;
-	final static int ROLLOUTS = 50;
-	static int alpha = Integer.MIN_VALUE;
-	static int beta = Integer.MAX_VALUE;
-	
-	public static ABNode getMoveBasic(HusBoardState board_state, int player_id, int opponent_id) {
-		return getMoveDepth(board_state, player_id, opponent_id, 0, true, 1);
-	}
-	
-	public static ABNode getMoveDepth(HusBoardState board_state, int player_id, int opponent_id, int depth, boolean max, int max_depth) {
-		int score = (max) ? alpha : beta;
-		HusMove move;
-
-		ArrayList<HusMove> moves = board_state.getLegalMoves();
-
-		if (moves.size() == 0) {
-			// losing situation for a player
-			move = null;
-		} else {
-			move = moves.get(0);
-		}
-		for (int i = 0; i < moves.size(); i++) {
-			HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
-			cloned_board_state.move(moves.get(i));
-
-			if (depth == max_depth) {
-				int[][] pits = cloned_board_state.getPits();
-				int diff = getPlayerTotalSeeds(pits[player_id]) - getPlayerTotalSeeds(pits[opponent_id]);
-				if (max) {
-					if (diff > score) {
-						score = diff;
-						move = moves.get(i);
-					}
-				} else if (!max) {
-					if (diff < alpha) {
-						return (new ABNode(moves.get(i), Integer.MIN_VALUE)); // pruning for min nodes
-					}
-					if (diff < score) {
-						score = diff;
-						move = moves.get(i);
-					}
-				}
-			} else {
-				ABNode node = getMoveDepth(cloned_board_state, player_id, opponent_id, depth + 1, !max, max_depth);
-				if (max && node.score > score || !max && node.score < score) {
-					score = node.score;
-					move = moves.get(i);
-				}
-			}
-		}
-
-		ABNode ab = new ABNode(move, score);
-
-		return ab;
-
-	}
+	final static int ROLLOUTS = 500;
 
 	public static HusMove MonteCarloTreeSearch(HusBoardState board_state, int player_id, int opponent_id) {
 		HusMove move = null;
@@ -73,18 +20,27 @@ public class MyTools {
 		HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
 
 		// TODO: do minimax on the tree first then do rollouts on the leaves
-//		ABNode root = getMoveBasic(board_state, player_id, opponent_id);
-//		board_state.move(root.move);
+		// TODO: use upper confidence trees
 
 		// Basic Monte Carlo Rollouts
 		ArrayList<HusMove> moves = cloned_board_state.getLegalMoves();
 		int winsPerMove[] = new int[moves.size()];
-
-//		System.out.println(moves.size());
+		
+//		int favoredMove = 0;
+//		int score = 0;
+//		int[][] pits = cloned_board_state.getPits();
+//		// favor the move with the best short term outcome
+//		for (int i = 0; i < moves.size(); i++) {
+//			int diff = getPlayerTotalSeeds(pits[player_id]) - getPlayerTotalSeeds(pits[opponent_id]);
+//			if (diff > score) {
+//				score = diff;
+//				favoredMove = i;
+//			}
+//		}
 
 		int mostWins = -1;
 		for (int i = 0; i < ROLLOUTS; i++) {
-			int moveNum = rand.nextInt(moves.size());
+			int moveNum = /*(rand.nextInt() < 0.5) ? favoredMove :*/ rand.nextInt(moves.size()); // simple search
 			int winner = rollout(cloned_board_state, moves.get(moveNum));
 			winsPerMove[moveNum] += (winner == player_id) ? 1 : 0;
 			if (winsPerMove[moveNum] > mostWins) {
@@ -92,6 +48,8 @@ public class MyTools {
 				move = moves.get(moveNum);
 			}
 		}
+		
+		System.out.println(mostWins);
 
 		return move;
 	}
@@ -110,6 +68,58 @@ public class MyTools {
 		}
 
 		return cloned_board_state.getWinner();
+	}
+	
+	public static ABNode MaxValues(HusBoardState board_state, int alpha, int beta, int depth, int player_id, int opp_id) {
+		ABNode node = new ABNode(null, alpha);
+		if (depth >= MAX_AB_DEPTH) {
+			int pits[][] = board_state.getPits();
+			int diff = (getPlayerTotalSeeds(pits[player_id]) - getPlayerTotalSeeds(pits[opp_id]));
+			node = new ABNode(null, diff);
+			return node;
+		}
+		ArrayList<HusMove> moves = board_state.getLegalMoves();
+		for (int i = 0; i < moves.size(); i++) {
+			HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
+			cloned_board_state.move(moves.get(i));
+			ABNode temp_node = MinValues(cloned_board_state, alpha, beta, depth+1, player_id, opp_id);
+			if (temp_node.score > alpha) {
+				alpha = temp_node.score;
+				node.move = moves.get(i);
+				node.score = alpha;
+			}
+			if (temp_node.score >= beta) {
+				node = new ABNode(moves.get(i), beta);
+				return node;
+			}
+		}
+		return node;
+	}
+	
+	public static ABNode MinValues(HusBoardState board_state, int alpha, int beta, int depth, int player_id, int opp_id) {
+		ABNode node = new ABNode(null, beta);
+		if (depth >= MAX_AB_DEPTH) {
+			int pits[][] = board_state.getPits();
+			int diff = (getPlayerTotalSeeds(pits[player_id]) - getPlayerTotalSeeds(pits[opp_id]));
+			node = new ABNode(null, diff);
+			return node;
+		}
+		ArrayList<HusMove> moves = board_state.getLegalMoves();
+		for (int i = 0; i < moves.size(); i++) {
+			HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
+			cloned_board_state.move(moves.get(i));
+			ABNode temp_node = MaxValues(cloned_board_state, alpha, beta, depth+1, player_id, opp_id);
+			if (temp_node.score < beta) {
+				beta = temp_node.score;
+				node.move = moves.get(i);
+				node.score = beta;
+			}
+			if (temp_node.score < alpha) {
+				node = new ABNode(moves.get(i), alpha);
+				return node;
+			}
+		}
+		return node;
 	}
 	
 	public static int getPlayerTotalSeeds(int[] player_pits) {
