@@ -31,7 +31,8 @@ public class BaseStudentPlayer extends HusPlayer {
 
     	} else {
 
-    		MyTools.ABNode node = MyTools.MaxValues(board_state, Integer.MIN_VALUE, Integer.MAX_VALUE, 0, player_id, opponent_id);
+//    		MyTools.ABNode node = MyTools.AB_Search(board_state, player_id, opponent_id);
+    		MyTools.ABNode node = MyTools.MaxValues(board_state, Float.MIN_VALUE, Float.MAX_VALUE, 0, player_id, opponent_id);
     		move = node.move;
     	}
 
