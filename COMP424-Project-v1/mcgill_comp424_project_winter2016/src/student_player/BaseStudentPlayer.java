@@ -1,11 +1,8 @@
 package student_player;
 
-import java.util.ArrayList;
-
 import hus.HusBoardState;
 import hus.HusPlayer;
 import hus.HusMove;
-import student_player.mytools.MinMaxNode;
 import student_player.mytools.MyTools;
 
 /**
@@ -22,19 +19,10 @@ public class BaseStudentPlayer extends HusPlayer {
     public HusMove chooseMove(HusBoardState board_state)
     {
     	HusMove move;
-    	if (firstMove) {
-        	ArrayList<HusMove> moves = board_state.getLegalMoves();
 
-    		// for now the first move will be random so that we can avoid making a tree with one level of the same score
-    		move = moves.get((int)(Math.random() * moves.size()));
-    		firstMove = false;
-
-    	} else {
-
-//    		MyTools.ABNode node = MyTools.AB_Search(board_state, player_id, opponent_id);
-    		MyTools.ABNode node = MyTools.MaxValues(board_state, Float.MIN_VALUE, Float.MAX_VALUE, 0, player_id, opponent_id);
-    		move = node.move;
-    	}
+//    	MyTools.ABNode node = MyTools.AB_Search(board_state, player_id, opponent_id);
+    	MyTools.ABNode node = MyTools.MaxValues(board_state, Float.MIN_VALUE, Float.MAX_VALUE, 0, player_id, opponent_id);
+    	move = node.move;
 
         return move;
     }

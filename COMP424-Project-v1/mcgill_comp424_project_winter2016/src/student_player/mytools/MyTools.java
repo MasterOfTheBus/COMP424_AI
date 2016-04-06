@@ -2,18 +2,19 @@ package student_player.mytools;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Stack;
 
 import hus.HusBoardState;
 import hus.HusMove;
 
 public class MyTools {
 
-	final static int MAX_AB_DEPTH = 5;
-	final static int MAX_MINIMAX_DEPTH = 4;
+	final static int MAX_AB_DEPTH = 6;
+	final static int MAX_MINIMAX_DEPTH = 5;
 	final static int MAX_ROLLOUT_DEPTH = 10;
 	final static int ROLLOUTS = 500;
 
+	// ======================================= Monte Carlo (Not Used) =======================================================
+	
 	public static HusMove MonteCarloTreeSearch(HusBoardState board_state, int player_id, int opponent_id) {
 		HusMove move = null;
 		Random rand = new Random();
@@ -62,7 +63,8 @@ public class MyTools {
 //		return MaxValues(board_state, Float.MIN_VALUE, Float.MAX_VALUE, 0, player_id, opp_id, true);
 //	}
 	
-	private static float evaluate(HusBoardState board_state, int player_id, int opp_id, boolean monte_carlo) {
+	// Used for monte carlo
+	public static float evaluate(HusBoardState board_state, int player_id, int opp_id, boolean monte_carlo) {
 		if (monte_carlo) {
 			Random rand = new Random();
 			float total = 50;
@@ -84,23 +86,30 @@ public class MyTools {
 		Random rand = new Random();
 		HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
 		cloned_board_state.move(move);
-//		int depth = 0;
-		while (cloned_board_state.getWinner() == HusBoardState.NOBODY/* && depth < MAX_ROLLOUT_DEPTH*/) {
+		while (cloned_board_state.getWinner() == HusBoardState.NOBODY) {
 			ArrayList<HusMove> moves = cloned_board_state.getLegalMoves();
 			HusMove rand_move = moves.get(rand.nextInt(moves.size())); // TODO: consider back propagation with Upper Confidence Tree
 
 			cloned_board_state.move(rand_move);
-//			depth++;
 		}
 
 		return cloned_board_state.getWinner();
 	}
 	
+	// ====================================================== Minimax (Not Used) ==================================================
+	
 	public static ABNode MinimaxValue(HusBoardState board_state, int depth, int player_id, int opp_id, boolean max) {
+		/* Check for Endgame */
+		int winner = board_state.getWinner();
+		if (winner == player_id) {
+			return new ABNode(null, Float.MAX_VALUE);
+		} else if (winner == opp_id) {
+			return new ABNode(null, Float.MIN_VALUE);
+		}
+		
 		if (depth >= MAX_MINIMAX_DEPTH) {
 			int pits[][] = board_state.getPits();
-			int diff = (getPlayerTotalSeeds(pits[player_id]));// - getPlayerTotalSeeds(pits[opp_id]));
-			ABNode node = new ABNode(null, diff);
+			ABNode node = new ABNode(null, getPlayerTotalSeeds(pits[player_id]));
 			return node;
 		}
 		
@@ -109,7 +118,7 @@ public class MyTools {
 		for (int i = 0; i < moves.size(); i++) {
 			HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
 			cloned_board_state.move(moves.get(i));
-			ABNode temp_node = MinimaxValue(board_state, depth+1, player_id, opp_id, !max);
+			ABNode temp_node = MinimaxValue(cloned_board_state, depth+1, player_id, opp_id, !max);
 			if ((max && temp_node.score > node.score) || (!max && temp_node.score < node.score)) {
 				node.score = temp_node.score;
 				node.move = moves.get(i);
@@ -118,13 +127,26 @@ public class MyTools {
 		return node;
 	}
 	
+	// =============================================== Alpha Beta Pruning (Final Implementation) ===================================
+	
 	public static ABNode MaxValues(HusBoardState board_state, float alpha, float beta, int depth, int player_id, int opp_id/*, boolean monte_carlo*/) {
 		ABNode node = new ABNode(null, alpha);
+		
+		/* Check for Endgame */
+		int winner = board_state.getWinner();
+		if (winner == player_id) {
+			node.score = Float.MAX_VALUE;
+			return node;
+		} else if (winner == opp_id) {
+			node.score = Float.MIN_VALUE;
+			return node;
+		}
+		
+		/* For Normal Gameplay*/
 //		int test_depth = (monte_carlo) ? 2 : MAX_AB_DEPTH;
 		if (depth >= MAX_AB_DEPTH/*test_depth*/) {
 			int pits[][] = board_state.getPits();
-			int diff = (getPlayerTotalSeeds(pits[player_id]));// - getPlayerTotalSeeds(pits[opp_id]));
-			node = new ABNode(null, diff);
+			node = new ABNode(null, getPlayerTotalSeeds(pits[player_id]));
 //			node = new ABNode(null, evaluate(board_state, player_id, opp_id, monte_carlo)); // leaving this in leads to timeouts
 			return node;
 		}
@@ -148,11 +170,22 @@ public class MyTools {
 	
 	public static ABNode MinValues(HusBoardState board_state, float alpha, float beta, int depth, int player_id, int opp_id/*, boolean monte_carlo*/) {
 		ABNode node = new ABNode(null, beta);
+		
+		/* Check for Endgame */
+		int winner = board_state.getWinner();
+		if (winner == player_id) {
+			node.score = Float.MAX_VALUE;
+			return node;
+		} else if (winner == opp_id) {
+			node.score = Float.MIN_VALUE;
+			return node;
+		}
+		
+		/* For Normal Gameplay */
 //		int test_depth = (monte_carlo) ? 2 : MAX_AB_DEPTH;
 		if (depth >= MAX_AB_DEPTH/*test_depth*/) {
 			int pits[][] = board_state.getPits();
-			int diff = (getPlayerTotalSeeds(pits[player_id]));// - getPlayerTotalSeeds(pits[opp_id]));
-			node = new ABNode(null, diff);
+			node = new ABNode(null, getPlayerTotalSeeds(pits[player_id]));
 //			node = new ABNode(null, evaluate(board_state, player_id, opp_id, monte_carlo));
 			return node;
 		}

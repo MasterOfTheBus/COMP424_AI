@@ -1,11 +1,8 @@
 package student_player;
 
-import java.util.ArrayList;
-
 import hus.HusBoardState;
 import hus.HusPlayer;
 import hus.HusMove;
-import student_player.mytools.MinMaxNode;
 import student_player.mytools.MyTools;
 
 /** A Hus player submitted by a student. */
@@ -25,10 +22,10 @@ public class StudentPlayer extends HusPlayer {
     public HusMove chooseMove(HusBoardState board_state)
     {
     	HusMove move;
-//    	MyTools.ABNode node = MyTools.MonteCarlo_Search(board_state, player_id, opponent_id);
+//    	MyTools.ABNode node = MyTools.MinimaxValue(board_state, 0, player_id, opponent_id, true);
 //    	MyTools.ABNode node = MyTools.AB_Search(board_state, player_id, opponent_id);
-//    	MyTools.ABNode node = MyTools.MaxValues(board_state, Integer.MIN_VALUE, Integer.MAX_VALUE, 0, player_id, opponent_id);
-    	MyTools.ABNode node = MyTools.MinimaxValue(board_state, 0, player_id, opponent_id, true);
+//    	MyTools.ABNode node = MyTools.MonteCarlo_Search(board_state, player_id, opponent_id);
+    	MyTools.ABNode node = MyTools.MaxValues(board_state, Integer.MIN_VALUE, Integer.MAX_VALUE, 0, player_id, opponent_id);
     	move = node.move;
 
         return move;
